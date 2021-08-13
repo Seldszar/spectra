@@ -1,4 +1,4 @@
-const configure = require("../..");
+const { configure } = require("../..");
 
 module.exports = configure({
   variants: {

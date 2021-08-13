@@ -1,10 +1,7 @@
-const compiler = require("@vue/compiler-sfc");
-const fs = require("fs");
+const { configure } = require("../..");
 
 const { EntryWrapperPlugin } = require("@seldszar/yael");
 const { VueLoaderPlugin } = require("vue-loader");
-
-const configure = require("../..");
 
 module.exports = configure({
   variants: {
@@ -20,7 +17,7 @@ module.exports = configure({
       template: "src/browser/graphics/template.html",
     },
   },
-  webpack(config, { actions, name }) {
+  webpack(config, { name }) {
     if (name === "extension") {
       return;
     }
@@ -38,27 +35,6 @@ module.exports = configure({
         test: /\.vue$/,
       },
     ]);
-
-    actions.setBabelOverride("vue", {
-      test(filePath) {
-        if (filePath.endsWith(".vue")) {
-          const {
-            descriptor: { script, scriptSetup },
-          } = compiler.parse(fs.readFileSync(filePath, "utf8"));
-
-          if (script && script.lang) {
-            return script.lang.toLowerCase() === "ts";
-          }
-
-          if (scriptSetup && scriptSetup.lang) {
-            return scriptSetup.lang.toLowerCase() === "ts";
-          }
-        }
-
-        return false;
-      },
-      plugins: ["@babel/plugin-transform-typescript"],
-    });
 
     config.resolve.extensions.add(".vue");
   },

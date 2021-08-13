@@ -15,7 +15,7 @@ const RefreshPlugin = require("./plugins/refresh");
 
 const loadJsonFile = (filePath) => JSON.parse(fs.readFileSync(filePath));
 
-module.exports = (options) => {
+exports.configure = (options) => {
   const { dependencies, devDependencies } = loadJsonFile("package.json");
 
   /**
@@ -84,6 +84,7 @@ module.exports = (options) => {
 
       config.cache({
         type: "filesystem",
+        compression: false,
         buildDependencies: {
           config: [__filename, module.parent.filename],
         },
@@ -130,41 +131,81 @@ module.exports = (options) => {
           ]);
       } catch {} // eslint-disable-line no-empty
 
+      const babelRule = config.module.rule("babel");
+
+      babelRule.test(/\.[jt]sx?$/);
+      babelRule.exclude.add(/node_modules/);
+
+      babelRule
+        .use("thread-loader")
+        .loader(require.resolve("thread-loader"))
+        .options({
+          workers: 2,
+          workerParallelJobs: Infinity,
+          poolTimeout: isWatching ? Infinity : 500,
+        });
+
+      babelRule
+        .use("babel-loader")
+        .loader(require.resolve("babel-loader"))
+        .options({
+          cacheDirectory: true,
+          cacheCompression: false,
+          plugins: [
+            [
+              "@babel/plugin-proposal-decorators",
+              {
+                legacy: true,
+              },
+            ],
+            [
+              "@babel/plugin-proposal-class-properties",
+              {
+                loose: false,
+              },
+            ],
+          ],
+          presets: [
+            [
+              "@babel/preset-env",
+              {
+                targets: variantName === "extension" ? "node 12" : "defaults",
+                include: [
+                  "@babel/plugin-proposal-optional-chaining",
+                  "@babel/plugin-proposal-nullish-coalescing-operator",
+                ],
+              },
+            ],
+            [
+              "@babel/preset-typescript",
+              {
+                optimizeConstEnums: true,
+                allExtensions: true,
+                isTSX: true,
+              },
+            ],
+          ],
+        });
+
       if (useTypescript) {
-        const tsRule = config.module.rule("typescript");
-
-        tsRule.test(/\.tsx?$/);
-        tsRule.exclude.add(/node_modules/);
-
-        tsRule
-          .use("thread-loader")
-          .loader(require.resolve("thread-loader"))
-          .options({
-            workers: 2,
-            workerParallelJobs: Infinity,
-            poolTimeout: isWatching ? Infinity : 500,
-          });
-
-        tsRule
-          .use("ts-loader")
-          .loader(require.resolve("ts-loader"))
-          .options({
-            appendTsSuffixTo: ["\\.vue$"],
-            happyPackMode: true,
-            silent: true,
-          });
-
         const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
         config
           .plugin("fork-ts-checker-webpack-plugin")
           .use(ForkTsCheckerWebpackPlugin, [
             {
+              issue: {
+                include: [
+                  {
+                    file: "src/**/*",
+                  },
+                ],
+              },
               logger: {
                 issues: "webpack-infrastructure",
               },
               typescript: {
-                enabled: true,
+                mode: "write-references",
                 diagnosticOptions: {
                   semantic: true,
                   syntactic: true,
@@ -184,7 +225,7 @@ module.exports = (options) => {
         case "graphics": {
           config.target("web");
 
-          const cssRule = config.module.rule("css").test(/(?<!\.module)\.css$/);
+          const cssRule = config.module.rule("css").test(/\.css$/);
 
           applyStyleRule(cssRule.oneOf("module").resourceQuery(/module/), true);
           applyStyleRule(cssRule.oneOf("normal"), false);
@@ -195,9 +236,7 @@ module.exports = (options) => {
           );
 
           if (useSass) {
-            const sassRule = config.module
-              .rule("sass")
-              .test(/(?<!\.module)\.s[ac]ss$/);
+            const sassRule = config.module.rule("sass").test(/\.s[ac]ss$/);
 
             applyStyleRule(
               sassRule.oneOf("module").resourceQuery(/module/),
@@ -300,6 +339,8 @@ module.exports = (options) => {
         options.webpack(config, {
           options: variantOptions,
           name: variantName,
+          isProduction,
+          isWatching,
         });
       }
 

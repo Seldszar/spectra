@@ -175,6 +175,14 @@ exports.configure = (options) => {
                 loose: false,
               },
             ],
+            [
+              "@babel/plugin-transform-runtime",
+              {
+                corejs: false,
+                helpers: true,
+                regenerator: true,
+              },
+            ],
           ],
           presets: [
             [

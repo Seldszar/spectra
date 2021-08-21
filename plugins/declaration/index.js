@@ -13,6 +13,7 @@ class DeclarationPlugin {
           const bundles = generateDtsBundle(
             entrypoint.origins.map((origin) => ({
               filePath: origin.request,
+              noCheck: true,
               output: {
                 noBanner: true,
               },

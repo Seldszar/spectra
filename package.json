@@ -33,6 +33,7 @@
     "postcss-loader": "^6.1.1",
     "sass-loader": "^12.1.0",
     "source-map-support": "^0.5.19",
+    "terser-webpack-plugin": "^5.1.4",
     "thread-loader": "^3.0.4",
     "webpack-chain": "^6.5.1",
     "webpack-node-externals": "^3.0.0",

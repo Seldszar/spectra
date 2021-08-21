@@ -6,6 +6,7 @@ const nodeExternals = require("webpack-node-externals");
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+const TerserWebpackPlugin = require("terser-webpack-plugin");
 
 const AliasResolvePlugin = require("./plugins/alias-resolve");
 const DeclarationPlugin = require("./plugins/declaration");
@@ -123,6 +124,19 @@ exports.configure = (options) => {
           },
         },
       });
+
+      config.optimization
+        .minimizer("terser-webpack-plugin")
+        .use(TerserWebpackPlugin, [
+          {
+            extractComments: false,
+            terserOptions: {
+              format: {
+                comments: false,
+              },
+            },
+          },
+        ]);
 
       try {
         const { compilerOptions } = loadJsonFile("jsconfig.json");

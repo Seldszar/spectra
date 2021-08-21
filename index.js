@@ -102,7 +102,7 @@ exports.configure = (options) => {
         type: "filesystem",
         compression: false,
         buildDependencies: {
-          config: [__filename, module.parent.filename],
+          config: [__filename, require.main.filename],
         },
       });
 

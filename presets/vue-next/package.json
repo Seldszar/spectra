@@ -1,0 +1,7 @@
+{
+  "name": "@spectra/preset-vue-next",
+  "dependencies": {
+    "@vue/compiler-sfc": "^3.1.5",
+    "vue-loader": "^16.5.0"
+  }
+}

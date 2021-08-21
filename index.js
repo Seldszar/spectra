@@ -15,6 +15,17 @@ const RefreshPlugin = require("./plugins/refresh");
 
 const loadJsonFile = (filePath) => JSON.parse(fs.readFileSync(filePath));
 
+exports.preset = (handler) => (options) => ({
+  ...options,
+  webpack(config, context) {
+    handler(config, context);
+
+    if (options.webpack) {
+      options.webpack(config, context);
+    }
+  },
+});
+
 exports.configure = (options) => {
   const { dependencies, devDependencies } = loadJsonFile("package.json");
 

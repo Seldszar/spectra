@@ -1,0 +1,48 @@
+const { preset } = require("../..");
+
+const compiler = require("vue-template-compiler");
+const fs = require("fs");
+
+const { VueLoaderPlugin } = require("vue-loader");
+
+module.exports = preset((config) => {
+  if (config.get("target") !== "web") {
+    return;
+  }
+
+  const babelRule = config.module.rule("babel");
+  const vueRule = config.module.rule("vue");
+
+  vueRule.test(/\.vue$/);
+  vueRule.exclude.add(/node_modules/);
+  vueRule.use("vue-loader").loader(require.resolve("vue-loader"));
+
+  config.plugin("vue-loader-plugin").use(VueLoaderPlugin);
+
+  babelRule.use("babel-loader").tap((options) => {
+    if (options.overrides == null) {
+      options.overrides = [];
+    }
+
+    options.overrides.push({
+      plugins: [require.resolve("@babel/plugin-transform-typescript")],
+      test(filePath) {
+        if (filePath.endsWith(".vue")) {
+          const { script } = compiler.parseComponent(
+            fs.readFileSync(filePath, "utf8")
+          );
+
+          if (script && script.lang) {
+            return script.lang.toLowerCase() === "ts";
+          }
+        }
+
+        return false;
+      },
+    });
+
+    return options;
+  });
+
+  config.resolve.extensions.add(".vue");
+});

@@ -14,9 +14,12 @@ export interface Context {
   isWatching: boolean;
 }
 
+export type WebpackHandler = (config: Config, context: Context) => void;
+
 export interface Options {
   variants: Record<string, VariantOptions>;
-  webpack?: (config: Config, context: Context) => void;
+  webpack?: WebpackHandler;
 }
 
+export function preset(handler: WebpackHandler): Function;
 export function configure(options: Options): Function;

@@ -10,6 +10,7 @@
   },
   "files": [
     "plugins",
+    "presets",
     "index.d.ts",
     "index.js"
   ],

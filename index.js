@@ -83,7 +83,11 @@ exports.configure = (options) => {
         .devtool(isProduction ? "source-map" : "inline-cheap-source-map");
 
       config.performance.set("hints", false);
-      config.output.publicPath("").path(path.resolve(variantName));
+
+      config.output
+        .path(path.resolve(variantName))
+        .set("clean", isProduction)
+        .publicPath("");
 
       config.resolve.extensions.merge([
         ".wasm",

@@ -13,6 +13,7 @@ const DeclarationPlugin = require("./plugins/declaration");
 const EntryPlugin = require("./plugins/entry");
 const PagePlugin = require("./plugins/page");
 const RefreshPlugin = require("./plugins/refresh");
+const TypescriptPlugin = require("./plugins/typescript");
 
 const loadJsonFile = (filePath) => JSON.parse(fs.readFileSync(filePath));
 
@@ -39,7 +40,6 @@ exports.configure = (options) => {
   const usePostcss = useDependency("postcss");
   const useSass = useDependency("sass", "node-sass");
   const useTypescript = useDependency("typescript");
-  const useVue = useDependency("vue");
 
   /**
    * @param {Config.Rule} config
@@ -225,34 +225,7 @@ exports.configure = (options) => {
         });
 
       if (useTypescript) {
-        const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
-
-        config
-          .plugin("fork-ts-checker-webpack-plugin")
-          .use(ForkTsCheckerWebpackPlugin, [
-            {
-              issue: {
-                include: [
-                  {
-                    file: "src/**/*",
-                  },
-                ],
-              },
-              logger: {
-                issues: "webpack-infrastructure",
-              },
-              typescript: {
-                mode: "write-references",
-                diagnosticOptions: {
-                  semantic: true,
-                  syntactic: true,
-                },
-                extensions: {
-                  vue: useVue,
-                },
-              },
-            },
-          ]);
+        config.plugin("typescript-plugin").use(TypescriptPlugin);
 
         config.resolve.extensions.merge([".tsx", ".ts"]);
       }
@@ -346,11 +319,7 @@ exports.configure = (options) => {
           }
 
           if (useTypescript && isProduction) {
-            config.plugin("declaration-plugin").use(DeclarationPlugin, [
-              {
-                preferredConfigPath: path.resolve("tsconfig.json"),
-              },
-            ]);
+            config.plugin("declaration-plugin").use(DeclarationPlugin);
           }
 
           break;

@@ -2,10 +2,6 @@ const { generateDtsBundle } = require("dts-bundle-generator");
 const { ConcatSource } = require("webpack-sources");
 
 class DeclarationPlugin {
-  constructor(options) {
-    this.options = options;
-  }
-
   apply(compiler) {
     compiler.hooks.thisCompilation.tap("DeclarationPlugin", (compilation) => {
       compilation.hooks.additionalAssets.tap("DeclarationPlugin", () => {
@@ -17,8 +13,7 @@ class DeclarationPlugin {
               output: {
                 noBanner: true,
               },
-            })),
-            this.options
+            }))
           );
 
           const source = new ConcatSource(...bundles);

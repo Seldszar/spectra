@@ -26,7 +26,6 @@
     "css-loader": "^6.2.0",
     "dts-bundle-generator": "^5.9.0",
     "fast-glob": "^3.2.7",
-    "fork-ts-checker-webpack-plugin": "^7.0.0-0",
     "jsdom": "^17.0.0",
     "mini-css-extract-plugin": "^2.2.0",
     "node-polyfill-webpack-plugin": "^1.1.4",

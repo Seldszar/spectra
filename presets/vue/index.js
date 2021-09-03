@@ -1,15 +1,9 @@
-const { preset } = require("../..");
-
 const compiler = require("vue-template-compiler");
 const fs = require("fs");
 
 const { VueLoaderPlugin } = require("vue-loader");
 
-module.exports = preset((config) => {
-  if (config.get("target") !== "web") {
-    return;
-  }
-
+module.exports = (config) => {
   const babelRule = config.module.rule("babel");
   const vueRule = config.module.rule("vue");
 
@@ -45,4 +39,4 @@ module.exports = preset((config) => {
   });
 
   config.resolve.extensions.add(".vue");
-});
+};

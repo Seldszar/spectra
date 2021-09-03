@@ -17,17 +17,6 @@ const TypescriptPlugin = require("./plugins/typescript");
 
 const loadJsonFile = (filePath) => JSON.parse(fs.readFileSync(filePath));
 
-exports.preset = (handler) => (options) => ({
-  ...options,
-  webpack(config, context) {
-    handler(config, context);
-
-    if (options.webpack) {
-      options.webpack(config, context);
-    }
-  },
-});
-
 exports.configure = (options) => {
   const { dependencies, devDependencies } = loadJsonFile("package.json");
 
@@ -341,14 +330,24 @@ exports.configure = (options) => {
         },
       ]);
 
+      const handlers = [];
+
+      if (variantOptions.presets) {
+        handlers.push(...variantOptions.presets);
+      }
+
       if (options.webpack) {
-        options.webpack(config, {
+        handlers.push(options.webpack);
+      }
+
+      handlers.forEach((handler) => {
+        handler(config, {
           options: variantOptions,
           name: variantName,
           isProduction,
           isWatching,
         });
-      }
+      });
 
       result.push({ entry: {}, ...config.toConfig() });
     }

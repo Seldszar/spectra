@@ -2,8 +2,11 @@
 
 import Config from "webpack-chain";
 
+export type ConfigHandler = (config: Config, context: Context) => void;
+
 export interface VariantOptions {
   source: string | string[];
+  presets?: ConfigHandler[];
   template?: string;
 }
 
@@ -14,12 +17,9 @@ export interface Context {
   isWatching: boolean;
 }
 
-export type WebpackHandler = (config: Config, context: Context) => void;
-
 export interface Options {
   variants: Record<string, VariantOptions>;
-  webpack?: WebpackHandler;
+  webpack?: ConfigHandler;
 }
 
-export function preset(handler: WebpackHandler): Function;
 export function configure(options: Options): Function;

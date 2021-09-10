@@ -1,4 +1,5 @@
 const cf = require("@babel/code-frame");
+const path = require("path");
 const ts = require("typescript");
 
 const diagnosticHost = {
@@ -31,11 +32,160 @@ class TypescriptPlugin {
         return;
       }
 
+      const embeddedSources = new Map();
+
       const entryFiles = new Set(
         fileNames.filter((fileName) => fileName.endsWith(".d.ts"))
       );
 
+      const host = ts.createCompilerHost(options);
+
+      const { fileExists, readFile } = host;
+
+      const parseEmbeddedFileName = (fileName) => {
+        const extension = path.extname(fileName);
+        const embeddedFileName = fileName.slice(0, -extension.length);
+        const embeddedExtension = path.extname(embeddedFileName);
+
+        return {
+          extension,
+          embeddedFileName,
+          embeddedExtension,
+        };
+      };
+
+      const getExtensionByLang = (lang) => {
+        if (typeof lang === "string") {
+          lang = lang.toLowerCase();
+        }
+
+        switch (lang) {
+          case "ts":
+            return ".ts";
+
+          case "tsx":
+            return ".tsx";
+
+          case "jsx":
+            return ".jsx";
+        }
+
+        return ".js";
+      };
+
+      const readEmbeddedFile = (fileName) => {
+        const { embeddedFileName, extension } = parseEmbeddedFileName(fileName);
+
+        if (fileExists(embeddedFileName)) {
+          const embeddedSource = getEmbeddedSource(embeddedFileName);
+
+          if (embeddedSource.extension === extension) {
+            return embeddedSource;
+          }
+        }
+
+        return null;
+      };
+
+      const getEmbeddedSource = (fileName) => {
+        let embeddedSource = embeddedSources.get(fileName);
+
+        if (embeddedSource == null) {
+          let script;
+
+          const sourceText = readFile(fileName);
+
+          try {
+            const compiler = require("@vue/compiler-sfc");
+
+            const { descriptor } = compiler.parse(sourceText, {
+              pad: "space",
+            });
+
+            if (descriptor.script) {
+              const {
+                script: { loc, lang, src },
+              } = descriptor;
+
+              const start = loc.start.offset;
+              const end = loc.end.offset;
+
+              script = { end, lang, src, start };
+            }
+          } catch {
+            const compiler = require("vue-template-compiler");
+
+            const parsed = compiler.parseComponent(sourceText, {
+              pad: "space",
+            });
+
+            script = parsed.script;
+          }
+
+          embeddedSource = {
+            content: "export default {};",
+            extension: ".js",
+            fileName,
+          };
+
+          if (script) {
+            let { end, lang, src, start } = script;
+
+            if (src) {
+              src = src.replace(/\.tsx?$/i, "");
+
+              const text = [
+                `export { default } from "${src}";`,
+                `export * from "${src}";`,
+              ].join("\n");
+
+              embeddedSource.content = text;
+            } else {
+              const text = `${Array(
+                sourceText.slice(0, start).split(/\r?\n/g).length
+              ).join("\n")}${sourceText.slice(start, end)}`;
+
+              embeddedSource.content = text;
+            }
+
+            embeddedSource.extension = getExtensionByLang(lang);
+          }
+
+          embeddedSources.set(fileName, embeddedSource);
+        }
+
+        return embeddedSource;
+      };
+
+      host.fileExists = (fileName) => {
+        const embeddedFile = readEmbeddedFile(fileName);
+
+        if (embeddedFile) {
+          return true;
+        }
+
+        return fileExists(fileName);
+      };
+
+      host.readFile = (fileName) => {
+        const embeddedFile = readEmbeddedFile(fileName);
+
+        if (embeddedFile) {
+          return embeddedFile.content;
+        }
+
+        return readFile(fileName);
+      };
+
       const addEntryFile = (fileName) => {
+        if (fileName.endsWith(".vue")) {
+          const embeddedSource = getEmbeddedSource(fileName);
+
+          if (embeddedSource) {
+            entryFiles.add(`${fileName}${embeddedSource.extension}`);
+          }
+        }
+
         if (fileName.endsWith(".ts") || fileName.endsWith(".tsx")) {
           entryFiles.add(fileName);
         }
@@ -74,11 +224,18 @@ class TypescriptPlugin {
       const program = ts.createProgram({
         rootNames: Array.from(entryFiles),
         options,
+        host,
       });
 
       const diagnostics = ts.getPreEmitDiagnostics(program);
 
       diagnostics.forEach((diagnostic) => {
+        const embeddedFile = readEmbeddedFile(diagnostic.file.fileName);
+
+        if (embeddedFile) {
+          diagnostic.file.fileName = embeddedFile.fileName;
+        }
+
         let message = ts.formatDiagnostic(diagnostic, diagnosticHost);
 
         if (diagnostic.file) {

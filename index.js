@@ -196,7 +196,7 @@ exports.configure = (options) => {
             [
               "@babel/preset-env",
               {
-                targets: variantName === "extension" ? "node 12" : "defaults",
+                targets: variantName === "extension" ? "node 12" : "chrome 75",
                 include: [
                   "@babel/plugin-proposal-optional-chaining",
                   "@babel/plugin-proposal-nullish-coalescing-operator",

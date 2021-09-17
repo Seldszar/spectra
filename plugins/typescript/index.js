@@ -8,15 +8,101 @@ const diagnosticHost = {
   getNewLine: () => ts.sys.newLine,
 };
 
+const embeddedParsers = [
+  {
+    test: /\.vue$/,
+    parse(fileName, sourceText) {
+      let script;
+
+      try {
+        const compiler = require("@vue/compiler-sfc");
+
+        const { descriptor } = compiler.parse(sourceText, {
+          pad: "space",
+        });
+
+        if (descriptor.script) {
+          const {
+            script: { loc, lang, src },
+          } = descriptor;
+
+          const start = loc.start.offset;
+          const end = loc.end.offset;
+
+          script = { end, lang, src, start };
+        }
+      } catch {
+        const compiler = require("vue-template-compiler");
+
+        const parsed = compiler.parseComponent(sourceText, {
+          pad: "space",
+        });
+
+        script = parsed.script;
+      }
+
+      return (
+        script && {
+          content: getEmbededContent(sourceText, script),
+          extension: getExtensionByLang(script.lang),
+          fileName,
+        }
+      );
+    },
+  },
+];
+
+const getExtensionByLang = (lang) => {
+  if (typeof lang === "string") {
+    lang = lang.toLowerCase();
+  }
+
+  switch (lang) {
+    case "ts":
+      return ".ts";
+
+    case "tsx":
+      return ".tsx";
+
+    case "jsx":
+      return ".jsx";
+  }
+
+  return ".js";
+};
+
+const getEmbededContent = (sourceText, { end, src, start }) => {
+  if (src) {
+    src = src.replace(/\.tsx?$/i, "");
+
+    const lines = [
+      `export { default } from "${src}";`,
+      `export * from "${src}";`,
+    ];
+
+    return lines.join(ts.sys.newLine);
+  }
+
+  return (
+    Array(sourceText.slice(0, start).split(/\r?\n/g).length).join(
+      ts.sys.newLine
+    ) + sourceText.slice(start, end)
+  );
+};
+
 class TypescriptPlugin {
   constructor(options = {}) {
     this.options = {
-      fileName: "tsconfig.json",
+      configFile: "tsconfig.json",
       ...options,
     };
   }
 
   apply(compiler) {
+    if (compiler.isChild()) {
+      return;
+    }
+
     const { fileNames, options } = this.parseConfiguration(compiler);
 
     options.skipLibCheck = true;
@@ -27,12 +113,6 @@ class TypescriptPlugin {
 
     compiler.hooks.done.tap("TypescriptPlugin", (stats) => {
       const { compilation } = stats;
-
-      if (compilation.compiler.isChild()) {
-        return;
-      }
-
-      const embeddedSources = new Map();
 
       const entryFiles = new Set(
         fileNames.filter((fileName) => fileName.endsWith(".d.ts"))
@@ -54,25 +134,6 @@ class TypescriptPlugin {
         };
       };
 
-      const getExtensionByLang = (lang) => {
-        if (typeof lang === "string") {
-          lang = lang.toLowerCase();
-        }
-
-        switch (lang) {
-          case "ts":
-            return ".ts";
-
-          case "tsx":
-            return ".tsx";
-
-          case "jsx":
-            return ".jsx";
-        }
-
-        return ".js";
-      };
-
       const readEmbeddedFile = (fileName) => {
         const { embeddedFileName, extension } = parseEmbeddedFileName(fileName);
 
@@ -87,74 +148,24 @@ class TypescriptPlugin {
         return null;
       };
 
+      const embeddedSources = new Map();
+
       const getEmbeddedSource = (fileName) => {
-        let embeddedSource = embeddedSources.get(fileName);
+        let source = embeddedSources.get(fileName);
 
-        if (embeddedSource == null) {
-          let script;
+        if (source == null) {
+          const parser = embeddedParsers.find((parser) =>
+            parser.test.test(fileName)
+          );
 
-          const sourceText = readFile(fileName);
-
-          try {
-            const compiler = require("@vue/compiler-sfc");
-
-            const { descriptor } = compiler.parse(sourceText, {
-              pad: "space",
-            });
-
-            if (descriptor.script) {
-              const {
-                script: { loc, lang, src },
-              } = descriptor;
-
-              const start = loc.start.offset;
-              const end = loc.end.offset;
-
-              script = { end, lang, src, start };
-            }
-          } catch {
-            const compiler = require("vue-template-compiler");
-
-            const parsed = compiler.parseComponent(sourceText, {
-              pad: "space",
-            });
-
-            script = parsed.script;
+          if (parser) {
+            source = parser.parse(fileName, readFile(fileName));
           }
 
-          embeddedSource = {
-            content: "export default {};",
-            extension: ".js",
-            fileName,
-          };
-
-          if (script) {
-            let { end, lang, src, start } = script;
-
-            if (src) {
-              src = src.replace(/\.tsx?$/i, "");
-
-              const text = [
-                `export { default } from "${src}";`,
-                `export * from "${src}";`,
-              ].join("\n");
-
-              embeddedSource.content = text;
-            } else {
-              const text = `${Array(
-                sourceText.slice(0, start).split(/\r?\n/g).length
-              ).join("\n")}${sourceText.slice(start, end)}`;
-
-              embeddedSource.content = text;
-            }
-
-            embeddedSource.extension = getExtensionByLang(lang);
-          }
-
-          embeddedSources.set(fileName, embeddedSource);
+          embeddedSources.set(fileName, source);
         }
 
-        return embeddedSource;
+        return source;
       };
 
       host.fileExists = (fileName) => {
@@ -230,10 +241,12 @@ class TypescriptPlugin {
       const diagnostics = ts.getPreEmitDiagnostics(program);
 
       diagnostics.forEach((diagnostic) => {
-        const embeddedFile = readEmbeddedFile(diagnostic.file.fileName);
+        if (diagnostic.file) {
+          const embeddedFile = readEmbeddedFile(diagnostic.file.fileName);
 
-        if (embeddedFile) {
-          diagnostic.file.fileName = embeddedFile.fileName;
+          if (embeddedFile) {
+            diagnostic.file.fileName = embeddedFile.fileName;
+          }
         }
 
         let message = ts.formatDiagnostic(diagnostic, diagnosticHost);
@@ -278,11 +291,15 @@ class TypescriptPlugin {
 
   parseConfiguration(compiler) {
     const { config } = ts.readConfigFile(
-      this.options.fileName,
+      this.options.configFile,
       ts.sys.readFile
     );
 
-    return ts.parseJsonConfigFileContent(config, ts.sys, compiler.context);
+    const {
+      options: { basePath = compiler.context },
+    } = this;
+
+    return ts.parseJsonConfigFileContent(config, ts.sys, basePath);
   }
 }
 

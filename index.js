@@ -214,7 +214,7 @@ exports.configure = (options) => {
         });
 
       if (useTypescript) {
-        config.plugin("typescript-plugin").use(TypescriptPlugin);
+        config.plugin("typescript-plugin").use(TypescriptPlugin, [{ rootDir: variantOptions.rootDir }]);
 
         config.resolve.extensions.merge([".tsx", ".ts"]);
       }

@@ -10,7 +10,7 @@ const diagnosticHost = {
 class TypescriptPlugin {
   constructor(options = {}) {
     this.options = {
-      fileName: "tsconfig.json",
+      fileName: `${options.rootDir ?? ""}tsconfig.json`,
       ...options,
     };
   }
@@ -125,7 +125,7 @@ class TypescriptPlugin {
       ts.sys.readFile
     );
 
-    return ts.parseJsonConfigFileContent(config, ts.sys, compiler.context);
+    return ts.parseJsonConfigFileContent(config, ts.sys, this.options.rootDir ?? compiler.context);
   }
 }
 

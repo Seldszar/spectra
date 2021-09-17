@@ -8,6 +8,7 @@ export interface VariantOptions {
   source: string | string[];
   presets?: ConfigHandler[];
   template?: string;
+  context?: string;
 }
 
 export interface Context {

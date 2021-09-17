@@ -70,6 +70,7 @@ exports.configure = (options) => {
 
       config
         .name(variantName)
+        .context(variantOptions.context)
         .devtool(isProduction ? "source-map" : "inline-cheap-source-map");
 
       config.performance.set("hints", false);

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@1.6.1/schema.json",
+  "baseBranch": "main",
+  "access": "public",
+  "commit": false,
+  "changelog": [
+    "@changesets/changelog-github",
+    {
+      "repo": "seldszar/spectra"
+    }
+  ],
+  "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
+    "updateInternalDependents": "always"
+  }
+}

@@ -1,8 +1,0 @@
-{
-  "name": "@spectra/preset-react",
-  "dependencies": {
-    "@babel/preset-react": "^7.14.5",
-    "@pmmmwh/react-refresh-webpack-plugin": "^0.4.3",
-    "react-refresh": "^0.10.0"
-  }
-}

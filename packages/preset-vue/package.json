@@ -1,0 +1,16 @@
+{
+  "name": "@spectra/preset-vue",
+  "version": "1.0.0",
+  "description": "Vue preset for Spectra",
+  "author": "Alexandre Breteau <contact@seldszar.fr> (https://seldszar.fr)",
+  "license": "MIT",
+  "dependencies": {
+    "vue-loader": "^15.9.6"
+  },
+  "peerDependencies": {
+    "vue-template-compiler": "*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

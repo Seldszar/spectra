@@ -1,56 +1,24 @@
 {
-  "name": "@seldszar/spectra",
-  "version": "0.0.0-development",
-  "author": "Alexandre Breteau <contact@seldszar.fr> (https://seldszar.fr)",
-  "description": "Yet another Webpack configuration for NodeCG bundles",
-  "repository": "seldszar/spectra",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "prepare": "husky install",
+    "release": "changeset publish",
     "test": "eslint ."
   },
-  "files": [
-    "plugins",
-    "presets",
-    "index.d.ts",
-    "index.js"
-  ],
-  "dependencies": {
-    "@babel/core": "^7.15.0",
-    "@babel/plugin-proposal-class-properties": "^7.14.5",
-    "@babel/plugin-proposal-decorators": "^7.14.5",
-    "@babel/plugin-transform-runtime": "^7.15.0",
-    "@babel/preset-env": "^7.15.0",
-    "@babel/preset-typescript": "^7.15.0",
-    "@babel/runtime": "^7.15.3",
-    "babel-loader": "^8.2.2",
-    "css-loader": "^6.2.0",
-    "dts-bundle-generator": "^5.9.0",
-    "fast-glob": "^3.2.7",
-    "jsdom": "^17.0.0",
-    "mini-css-extract-plugin": "^2.2.0",
-    "node-polyfill-webpack-plugin": "^1.1.4",
-    "postcss-loader": "^6.1.1",
-    "sass-loader": "^12.1.0",
-    "source-map-support": "^0.5.19",
-    "terser-webpack-plugin": "^5.1.4",
-    "thread-loader": "^3.0.4",
-    "webpack-chain": "^6.5.1",
-    "webpack-node-externals": "^3.0.0",
-    "ws": "^8.2.0"
-  },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.4.1",
+    "@changesets/cli": "^2.17.0",
     "@commitlint/cli": "^13.1.0",
     "@commitlint/config-conventional": "^13.1.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.1.0",
-    "eslint-plugin-prettier": "^3.4.1",
+    "eslint-plugin-prettier": "^4.0.0",
     "husky": "^7.0.1",
     "lint-staged": "^11.1.2",
-    "prettier": "^2.3.2",
-    "webpack": "^5.51.1"
-  },
-  "peerDependencies": {
-    "webpack": "*"
+    "prettier": "^2.4.1"
   },
   "commitlint": {
     "extends": [

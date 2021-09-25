@@ -1,9 +1,0 @@
-{
-  "name": "@spectra/preset-vue",
-  "dependencies": {
-    "vue-loader": "^15.9.6"
-  },
-  "peerDependencies": {
-    "vue-template-compiler": "*"
-  }
-}

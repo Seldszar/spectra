@@ -1,0 +1,15 @@
+{
+  "name": "@spectra/preset-react",
+  "version": "1.0.0",
+  "description": "React preset for Spectra",
+  "author": "Alexandre Breteau <contact@seldszar.fr> (https://seldszar.fr)",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@babel/preset-react": "^7.14.5",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.1",
+    "react-refresh": "^0.10.0"
+  }
+}

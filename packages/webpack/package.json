@@ -1,0 +1,37 @@
+{
+  "name": "@spectra/webpack",
+  "version": "1.0.0",
+  "description": "Yet another opiniated Webpack configuration for NodeCG bundles",
+  "author": "Alexandre Breteau <contact@seldszar.fr> (https://seldszar.fr)",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@babel/core": "^7.15.0",
+    "@babel/plugin-proposal-class-properties": "^7.14.5",
+    "@babel/plugin-proposal-decorators": "^7.14.5",
+    "@babel/plugin-transform-runtime": "^7.15.0",
+    "@babel/preset-env": "^7.15.6",
+    "@babel/preset-typescript": "^7.15.0",
+    "@babel/runtime": "^7.15.3",
+    "babel-loader": "^8.2.2",
+    "css-loader": "^6.3.0",
+    "dts-bundle-generator": "^5.9.0",
+    "fast-glob": "^3.2.7",
+    "jsdom": "^17.0.0",
+    "mini-css-extract-plugin": "^2.3.0",
+    "node-polyfill-webpack-plugin": "^1.1.4",
+    "postcss-loader": "^6.1.1",
+    "sass-loader": "^12.1.0",
+    "source-map-support": "^0.5.20",
+    "terser-webpack-plugin": "^5.2.4",
+    "thread-loader": "^3.0.4",
+    "webpack-chain": "^6.5.1",
+    "webpack-node-externals": "^3.0.0",
+    "ws": "^8.2.2"
+  },
+  "peerDependencies": {
+    "webpack": "*"
+  }
+}

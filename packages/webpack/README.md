@@ -1,6 +1,6 @@
-# @seldszar/spectra
+# @spectra/webpack
 
-> Yet another Webpack configuration for NodeCG bundles
+> Yet another opiniated Webpack configuration for NodeCG bundles
 
 ## Table of Contents
 
@@ -13,15 +13,15 @@
 # Install
 
 ```bash
-$ npm install seldszar/spectra
+$ npm install @spectra/webpack
 ```
 
 # Usage
 
-Create a new `webpack.config.js` and write the following code:
+Create a new file called `webpack.config.js` and write the following code:
 
 ```javascript
-const configure = require('@seldszar/spectra');
+const configure = require('@spectra/webpack');
 
 module.exports = configure({
   /**
